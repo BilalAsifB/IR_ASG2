@@ -178,8 +178,9 @@ def search_query():
 
     if results:
         for doc, score in results:
-            result_text.insert(tk.END, f"{doc} (Score: {score:.4f})\n", "result")
-    else:
+        result = [doc for doc, _ in results]
+        formatted_result = "\n".join(textwrap.fill(", ".join(sorted(result, key=int)), width=60).split("\n"))
+        result_text.insert(tk.END, formatted_result + "\n", "result")
         result_text.insert(tk.END, "No results found.\n", "result")
 
 def create_gui():
