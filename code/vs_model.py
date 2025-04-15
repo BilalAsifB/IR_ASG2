@@ -7,7 +7,6 @@ import spacy
 from spacy.language import Language
 import tkinter as tk
 from tkinter import scrolledtext
-import textwrap
 
 
 def read_all_docs(folder_path):
