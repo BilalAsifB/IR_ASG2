@@ -10,6 +10,7 @@ import spacy
 from spacy.language import Language
 import tkinter as tk
 from tkinter import scrolledtext
+import textwrap
 
 
 def read_all_docs(folder_path):
@@ -136,7 +137,7 @@ def contains_phrase(doc_name, phrase_tokens):
             return True
     return False
 
-def process_query(nlp, query, alpha=0.05):
+def process_query(nlp, query, alpha=0.025):
     """
     Processes the query, computes the TF-IDF vector, and retrieves relevant documents.
     """
@@ -177,10 +178,10 @@ def search_query():
     result_text.insert(tk.END, f"Results for query: {query}\n\n", "header")
 
     if results:
-        for doc, score in results:
         result = [doc for doc, _ in results]
         formatted_result = "\n".join(textwrap.fill(", ".join(sorted(result, key=int)), width=60).split("\n"))
         result_text.insert(tk.END, formatted_result + "\n", "result")
+    else:
         result_text.insert(tk.END, "No results found.\n", "result")
 
 def create_gui():
