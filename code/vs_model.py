@@ -1,3 +1,6 @@
+# Vector Space Model (VSM) Search Engine
+
+# Imports
 import glob
 import os
 import json
@@ -10,22 +13,37 @@ from tkinter import scrolledtext
 
 
 def read_all_docs(folder_path):
+    """
+    Reads all .txt files from the specified folder path.
+    """
     folder_path += "" if folder_path[-1] == '/' else '/'
     return glob.glob(folder_path + '*.txt')
 
 def get_stop_wrds():
+    """
+    Reads a custom stopword list from a file and returns it as a set.
+    """
     with open('./resources/Stopword-list.txt', 'r') as f:
         return {wrd.lower().strip() for wrd in f.readlines()}
 
 def get_text(path):
+    """
+    Reads the content of a text file and returns it as a lowercase string.
+    """
     with open(path, 'r', encoding="utf-8", errors="ignore") as f:
         return f.read().lower()
 
 @Language.component("stop_words_remover")
 def stop_words_remover(doc):
+    """
+    Custom pipeline component to remove stop words and punctuation from the document.
+    """
     return spacy.tokens.Doc(doc.vocab, words=[token.text for token in doc if not token.is_stop and not token.is_punct])
 
 def prepare_pipeline():
+    """
+    Prepares the spaCy pipeline with a custom stop word remover component.
+    """
     custom_stop_words = get_stop_wrds()
     nlp = spacy.load("en_core_web_sm")
     nlp.Defaults.stop_words.update(custom_stop_words)
@@ -33,6 +51,9 @@ def prepare_pipeline():
     return nlp
 
 def compute_tf_idf(nlp, save=True):
+    """
+    Computes the TF-IDF vectors for documents in the specified folder and saves them to files.
+    """
     path = "./resources/Abstracts/Abstracts"
     txt_files = read_all_docs(path)
 
@@ -81,6 +102,9 @@ def compute_tf_idf(nlp, save=True):
             json.dump({k: dict(v) for k, v in positional_index.items()}, f)
 
 def load_vectors():
+    """
+    Loads the TF-IDF vectors, IDF scores, and positional index from JSON files.
+    """
     global doc_vectors, idf_scores, documents, positional_index
     with open("./data/tfidf_index.json", "r") as f:
         doc_vectors = json.load(f)
@@ -91,12 +115,18 @@ def load_vectors():
     documents = set(doc_vectors.keys())
 
 def cosine_similarity(vec1, vec2):
+    """
+    Computes the cosine similarity between two vectors.
+    """
     dot = sum(vec1.get(term, 0) * vec2.get(term, 0) for term in set(vec1) | set(vec2))
     norm1 = math.sqrt(sum(v ** 2 for v in vec1.values()))
     norm2 = math.sqrt(sum(v ** 2 for v in vec2.values()))
     return dot / (norm1 * norm2) if norm1 and norm2 else 0.0
 
 def contains_phrase(doc_name, phrase_tokens):
+    """
+    Checks if a document contains a specific phrase using the positional index.
+    """
     if any(token not in positional_index or doc_name not in positional_index[token] for token in phrase_tokens):
         return False
 
@@ -107,6 +137,9 @@ def contains_phrase(doc_name, phrase_tokens):
     return False
 
 def process_query(nlp, query, alpha=0.05):
+    """
+    Processes the query, computes the TF-IDF vector, and retrieves relevant documents.
+    """
     is_phrase = query.startswith('"') and query.endswith('"')
     query = query.strip('"')
 
@@ -134,6 +167,9 @@ def process_query(nlp, query, alpha=0.05):
     return sorted(doc_scores.items(), key=lambda x: x[1], reverse=True)
 
 def search_query():
+    """
+    Handles the search query from the GUI, processes it, and displays results.
+    """
     query = query_entry.get()
     results = process_query(nlp, query)
 
@@ -147,6 +183,9 @@ def search_query():
         result_text.insert(tk.END, "No results found.\n", "result")
 
 def create_gui():
+    """
+    Creates the GUI for the search engine using Tkinter.
+    """
     global query_entry, result_text
 
     root = tk.Tk()
